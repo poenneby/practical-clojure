@@ -24,7 +24,7 @@ A sample of the data can be found in the `data` directory.
 
 ## Generate a project
 
-We like to do things test first so let's generate a project using the midje template - we'll call the application `monumental`.
+We like to do things test first so let's generate a project using the midje template - we call the application `monumental`.
 
 `> lein new midje monumental`
 
@@ -68,13 +68,12 @@ For this we need to add **cheshire** to our `project.clj` - and we'll update to 
                  [cheshire "5.8.1"]]
   :profiles {:dev {:dependencies [[midje "1.9.0"]]}})
 
-
 ```
 
-Back in the REPL we `require` the dependency and parse the string transforming keys into symbols using the `true` parameter.
+We start the REPL back up and `require` the dependency and parse the string transforming keys into symbols using the `true` parameter.
 
 ```
-user=> (require '[cheshire.core])
+user=> (require '[cheshire.core :refer :all])
 nil
 user=> (parse-string (slurp "../data/firstHundred.json") true)
 ...
@@ -93,7 +92,7 @@ user=> (filter (fn [m] (= "Picardie" (:REG m))) (parse-string (slurp "../data/fi
 ...
 ```
 
-The REPL is a good place to try out things quickly.
+The REPL is a good place to experiment and try out things quickly.
 
 
 ## Testing
@@ -220,11 +219,14 @@ With the http server in place we can define our monument search endpoint `/api/s
   (wrap-defaults app-routes site-defaults))
 ```
 
-We limit the monuments to 1 monument in order to test this end to end.
+We limit the monuments to 1 monument for now in order to test this end to end.
 
 The `api/search` endpoint takes a `region` query parameter which we pass to our `monuments-by-region` function.
 
-We restart that server to test the endpoint and we notice that the endpoint returns EDN and not JSON which we'd typically expect from our REST API.
+We restart the server to test the endpoint:
+`http://localhost:3000/api/search?region=Picardie`
+
+and we discover that the endpoint returns EDN and not JSON which we'd typically expect from our REST API.
 
 A middleware will help us transform the EDN into JSON.
 
@@ -246,7 +248,7 @@ Add the necessary dependency (ring-json)
 ```
 
 `require` the json middleware and response utility we need. The wrap the search endpoint in a `response`
-`monumental/src/monumental/core.clj`
+`monumental/src/monumental/handler.clj`
 ```
 (ns monumental.handler
   (:require [compojure.core :refer :all]
@@ -304,6 +306,7 @@ cp ../data/firstHundred.json resources
 ```
 
 And then reading this file into the `monuments` variable **def**ined **once** at startup
+
 ```
 (ns monumental.handler
   (:require [compojure.core :refer :all]
