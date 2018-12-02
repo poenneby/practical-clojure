@@ -1,5 +1,9 @@
 # Practical Clo*j*ure
 
+## Intro
+
+This is a guided hands-on which let you experience building, testing and running a simple REST API using Clojure.
+
 ## Setup your development environment
 
 - You need Java 8 or above installed and `JAVA_HOME` set.
@@ -16,15 +20,15 @@
 
 ## The application
 
-Let's say we've been asked to build a REST API that exposes information related to French monuments.
+Let's imagine we've been asked to build a REST API that exposes information related to French monuments.
 
 This is going to involve working with large amounts of data so we reach for Clojure which is data oriented by nature.
 
-A sample of the data can be found in the `data` directory.
+A sample file with monument data can be found in the `data` directory.
 
 ## Generate a project
 
-We like to do things test first so let's generate a project using the midje template - we call the application `monumental`.
+We like to do things test first so let's generate a project using the midje template - call the application `monumental`.
 
 `> lein new midje monumental`
 
@@ -46,19 +50,21 @@ and have a look at the project structure:
 
 ## Explore the Data
 
-So we've been given a sample file. Let's start a REPL and explore the data
+Now that we have created our project we can move on to exploring the sample data in a **REPL**:
 
 `> lein repl`
 
 The clojure core library provides a large number of useful functions.
 
-We can easily read a file into a string
+For instance, we can easily read a file into a string like this:
 
 `user=> (slurp "../data/firstHundred.json")`
 
 But it would be more useful to have the string parsed into EDN - the Extensible Data Notation used by Clojure
 
-For this we need to add **cheshire** to our `project.clj` - and we'll update to clojure 1.9.0 while we're at it!
+For this we need to add [cheshire](https://github.com/dakrone/cheshire) to the `project.clj` - and we will also update to clojure 1.9.0 while we're at it!
+
+- Quit the repl by typing `Ctrl+D` and then open up the project.clj:
 
 **project.clj**
 ```
@@ -70,23 +76,26 @@ For this we need to add **cheshire** to our `project.clj` - and we'll update to 
 
 ```
 
-We start the REPL back up and `require` the dependency and parse the string transforming keys into symbols using the `true` parameter.
+We start the REPL up again and `require` the dependency and parse the string transforming keys into symbols by using the `true` parameter.
 
 ```
+> lein repl
+...
 user=> (require '[cheshire.core :refer :all])
 nil
 user=> (parse-string (slurp "../data/firstHundred.json") true)
 ...
 ```
+Analysing the EDN formatted output we discover that there are **symbols** identifying different properties of a monument.
 
-We can now try to filter by the :REG (region) symbol in a limited data set by typing **forms** into the REPL
+We can try to filter by the :REG (region) symbol in a limited data set by typing **forms** into the REPL
 - the **filter** function takes a function predicate and a sequence
 ```
 user=> (filter (fn [r] (= "Picardie" (:REG r))) '({:REG "Picardie"}))
 ({:REG "Picardie"})
 ```
 
-And once we got that working we can filter using the whole file:
+And now that we got that working we can try to filter using the whole file:
 ```
 user=> (filter (fn [m] (= "Picardie" (:REG m))) (parse-string (slurp "../data/firstHundred.json") true))
 ...
@@ -94,20 +103,23 @@ user=> (filter (fn [m] (= "Picardie" (:REG m))) (parse-string (slurp "../data/fi
 
 The REPL is a good place to experiment and try out things quickly.
 
+You can also evaluate **forms** directly in your IDE with the help of the plugins installed in the first step.
+
 
 ## Testing
 
-The tests can be run using
+You run the tests like this:
 
 `> lein midje`
 
-or left running with hot reload using
+or you can leave them running with hot reload like this:
 
 `> lein midje :autotest`
 
+Note:
 You'll notice that the tests in the generated project fail.
 
-They intentionally do so to allow verifying the tests work. Go ahead and make them pass.
+They intentionally do so to allow verifying the tests framework work. Go ahead and make the tests pass! :-)
 
 ### First test
 
@@ -144,7 +156,7 @@ And we make the test pass by implementing the `monuments-by-region` function:
 
 To make use of this function we'll move on to creating the REST API endpoint
 
-For this we will use **compojure** which is a routing library for **ring** taking care of some boilerplate associated with http request and response handling
+For this we will use [compojure](https://github.com/weavejester/compojure) which is a routing library for [ring](https://github.com/ring-clojure/ring) taking care of some boilerplate associated with http request and response handling
 
 Let's add it to our dependencies:
 
@@ -189,17 +201,17 @@ Next we create that handler.
 
 With this in place we can now start up a server to verify that our handler is working correctly:
 
-`lein ring server`
+`> lein ring server`
 
 This opens up the root uri (http://localhost:3000/) in your default browser. And you should see "Hello World" printed.
 
 Alternatively you can start a server without opening a browser.
 
-`lein ring server-headless`
+`> lein ring server-headless`
 
 ## Putting it all together
 
-With the http server in place we can define our monument search endpoint `/api/search`
+With the http server in place we can define a new monument search endpoint `/api/search`
 
 `monumental/src/monumental/handler.clj`
 ```
@@ -247,7 +259,7 @@ Add the necessary dependency (ring-json)
                                   [ring/ring-mock "0.3.2"]]}})
 ```
 
-`require` the json middleware and response utility we need. The wrap the search endpoint in a `response`
+We `require` the json middleware and response utility we need. Then wrap the search endpoint in a `response`
 `monumental/src/monumental/handler.clj`
 ```
 (ns monumental.handler
@@ -301,8 +313,8 @@ Finally we can test the endpoint using the real monument file
 But first we'll put the file in a resources directory (Java developers will feel right at home with this one)
 
 ```
-mkdir -p resources
-cp ../data/firstHundred.json resources
+> mkdir -p resources
+> cp ../data/firstHundred.json resources
 ```
 
 And then reading this file into the `monuments` variable **def**ined **once** at startup
@@ -331,16 +343,23 @@ And then reading this file into the `monuments` variable **def**ined **once** at
 ```
 
 
-## Distributing our code
+## Distributing our application
 
 We are ready to ship the code and we do so by generating an **uberjar** using the lein-ring plugin:
 
-`lein ring uberjar`
+`> lein ring uberjar`
 
-You then run the application like any old executable jar:
+The uberjar contains all the application's dependencies and you can run it like this:
+
 `java -jar <path to generated jar>`
+
+Ex. `> java -jar target/monumental-0.0.1-SNAPSHOT-standalone.jar`
 
 
 ## Conclusion
 
+Congratulations, you've built a micro service for looking up French monuments in Clojure!
 
+We are of course only scratching the surface of what is possible using Clojure but
+I hope you have now got an idea of what you can achieve with relatively little code.
+And that you will want to continue to learn this language.
