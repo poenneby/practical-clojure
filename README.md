@@ -125,7 +125,7 @@ They intentionally do so to allow verifying the tests framework work. Go ahead a
 
 Let's move on with our solution - the first requirement is to get monuments by their region.
 
-We will assume that we have our sequence of monuments and come up with a first test:
+We will assume that we have our sequence of monuments and come up with a first test of our function:
 
 
 `monumental/test/monumental/core_test.clj`
@@ -141,8 +141,12 @@ We will assume that we have our sequence of monuments and come up with a first t
     (monuments-by-region monuments region) => monuments)))
 ```
 
-And we make the test pass by implementing the `monuments-by-region` function:
+The test is made up of `facts`
+- we declare 2 local variables `monuments` and `region` (The "Given" part of our test)
+- we invoke and assert with `<function-invocation> => <expected-result>` (the "When/Then" parts of the test)
 
+
+The test pass by implementing the `monuments-by-region` function as explored in the REPL earlier on:
 
 `monumental/src/monumental/core.clj`
 ```
