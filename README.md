@@ -15,16 +15,16 @@ This is a guided hands-on which let you experience building, testing and running
 ### Editor/IDE
 - For Visual Studio Code users I recommend installing the [Calva plugin](https://marketplace.visualstudio.com/items?itemName=cospaia.clojure4vscode) - setup instructions [here](https://github.com/BetterThanTomorrow/calva/wiki/Getting-Started#dependencies)
 
-- If you use IntelliJ I recommend installing the [Cursive plugin](https://plugins.jetbrains.com/plugin/8090-cursive) - and there is a free licence for private usage.
+- If you use IntelliJ I recommend installing the [Cursive plugin](https://plugins.jetbrains.com/plugin/8090-cursive) - and there is a free [non-commercial licence](https://cursive-ide.com/buy.html) available for hacking and open source work.
 
 
 ## The application
 
 Let's imagine we've been asked to build a REST API that exposes information related to French monuments.
 
-This is going to involve working with large amounts of data so we reach for Clojure which is data oriented by nature.
+This is going to involve working with large amounts of data so we reach for Clojure which is a data oriented language by nature.
 
-A sample file with monument data can be found in the `data` directory.
+A sample file with monument data can be found in the `data` directory. Go ahead and have a look at the file.
 
 ## Generate a project
 
@@ -32,7 +32,7 @@ We like to do things test first so let's generate a project using the midje temp
 
 `> lein new midje monumental`
 
-and have a look at the project structure:
+and then have a look at the project structure:
 
 ```
 > cd monumental
@@ -50,21 +50,21 @@ and have a look at the project structure:
 
 ## Explore the Data
 
-Now that we have created our project we can move on to exploring the sample data in a **REPL**:
+Now that we have created our project we can move on to exploring the sample data in a **REPL** (read–eval–print loop):
 
 `> lein repl`
 
 The clojure core library provides a large number of useful functions.
 
-For instance, we can easily read a file into a string like this:
+For instance, we can easily read monument file into a `string` like this:
 
 `user=> (slurp "../data/firstHundred.json")`
 
 But it would be more useful to have the string parsed into EDN - the Extensible Data Notation used by Clojure
 
-For this we need to add [cheshire](https://github.com/dakrone/cheshire) to the `project.clj` - and we will also update to clojure 1.9.0 while we're at it!
+For this we need to add [cheshire](https://github.com/dakrone/cheshire) to our project dependencies - and we will also update to clojure 1.9.0 while we're at it!
 
-- Quit the repl by typing `Ctrl+D` and then open up the project.clj:
+- Quit the repl by typing `Ctrl+D` and then open up `project.clj` to declare the `cheshire` dependency:
 
 **project.clj**
 ```
@@ -86,10 +86,23 @@ nil
 user=> (parse-string (slurp "../data/firstHundred.json") true)
 ...
 ```
-Analysing the EDN formatted output we discover that there are **symbols** identifying different properties of a monument.
+Analysing the EDN formatted output we discover that we now have **symbols** identifying different properties of a monument.
 
 We can try to filter by the :REG (region) symbol in a limited data set by typing **forms** into the REPL
-- the **filter** function takes a function predicate and a sequence
+
+Let's have a look at the documentation for `filter`:
+```
+user=> (doc filter)
+-------------------------
+clojure.core/filter
+([pred] [pred coll])
+  Returns a lazy sequence of the items in coll for which
+  (pred item) returns logical true. pred must be free of side-effects.
+  Returns a transducer when no collection is provided.
+nil
+```
+
+- the **filter** function takes a function predicate and a collection
 ```
 user=> (filter (fn [r] (= "Picardie" (:REG r))) '({:REG "Picardie"}))
 ({:REG "Picardie"})
@@ -101,7 +114,7 @@ user=> (filter (fn [m] (= "Picardie" (:REG m))) (parse-string (slurp "../data/fi
 ...
 ```
 
-The REPL is a good place to experiment and try out things quickly.
+The REPL is a good place to experiment and try things out quickly before including the code in the project.
 
 You can also evaluate **forms** directly in your IDE with the help of the plugins installed in the first step.
 
@@ -119,13 +132,13 @@ or you can leave them running with hot reload like this:
 Note:
 You'll notice that the tests in the generated project fail.
 
-They intentionally do so to allow verifying the tests framework work. Go ahead and make the tests pass! :-)
+They intentionally do so to allow verifying the test framework work, first step of TDD. Go ahead and make the tests pass! :-)
 
 ### First test
 
 Let's move on with our solution - the first requirement is to get monuments by their region.
 
-We will assume that we have our sequence of monuments and come up with a first test of our function:
+We will assume that we have a collection of monuments parsed from the file and come up with a first test for our function:
 
 
 `monumental/test/monumental/core_test.clj`
@@ -146,7 +159,7 @@ The test is made up of `facts`
 - we invoke and assert with `<function-invocation> => <expected-result>` (the "When/Then" parts of the test)
 
 
-The test pass by implementing the `monuments-by-region` function as explored in the REPL earlier on:
+We make the test pass by implementing the `monuments-by-region` function as explored in the REPL earlier on:
 
 `monumental/src/monumental/core.clj`
 ```
@@ -185,7 +198,7 @@ Apart from the obvious inclusion of **compojure** we see:
 
 Finally we added the `:ring` symbol to configure the handler.
 
-Next we create that handler.
+Next we create that handler in a new file.
 
 `monumental/src/monumental/handler.clj`
 ```
@@ -201,7 +214,6 @@ Next we create that handler.
 (def app
   (wrap-defaults app-routes site-defaults))
 ```
-
 
 With this in place we can now start up a server to verify that our handler is working correctly:
 
@@ -244,9 +256,10 @@ We restart the server to test the endpoint:
 
 and we discover that the endpoint returns EDN and not JSON which we'd typically expect from our REST API.
 
-A middleware will help us transform the EDN into JSON.
+A `middleware` will help us transform the EDN into JSON.
 
 Add the necessary dependency (ring-json)
+
 `project.clj`
 ```
 (defproject monumental "0.0.1-SNAPSHOT"
@@ -366,4 +379,4 @@ Congratulations, you've built a micro service for looking up French monuments in
 
 We are of course only scratching the surface of what is possible using Clojure but
 I hope you have now got an idea of what you can achieve with relatively little code.
-And that you will want to continue to learn this language.
+And that you will want to continue to learn this programming language.
