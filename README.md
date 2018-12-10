@@ -8,7 +8,8 @@ This is a guided hands-on which let you experience building, testing and running
 
 - You need Java 8 or above installed and `JAVA_HOME` set.
 
-- Install Leiningen: https://leiningen.org/#install
+- Install Leiningen:
+  - From the website: https://leiningen.org/#install or using brew: `brew install lein`
   - And the **lein-midje** plugin (for more expressive tests)
   > `echo '{:user {:plugins [[lein-midje "3.2.1"]]}}' > ~/.lein/profiles.clj`
 
@@ -17,6 +18,10 @@ This is a guided hands-on which let you experience building, testing and running
 
 - If you use IntelliJ I recommend installing the [Cursive plugin](https://plugins.jetbrains.com/plugin/8090-cursive) - and there is a free [non-commercial licence](https://cursive-ide.com/buy.html) available for hacking and open source work.
 
+- Vim users you may want to have a look at the following plugins:
+  - https://github.com/tpope/vim-fireplace
+  - https://github.com/guns/vim-clojure-static
+  - https://github.com/kien/rainbow_parentheses.vim
 
 ## The application
 
@@ -104,7 +109,7 @@ nil
 
 - the **filter** function takes a function predicate and a collection
 ```
-user=> (filter (fn [r] (= "Picardie" (:REG r))) '({:REG "Picardie"}))
+user=> (filter (fn [m] (= "Picardie" (:REG m))) '({:REG "Picardie"}))
 ({:REG "Picardie"})
 ```
 
@@ -234,8 +239,8 @@ With the http server in place we can define a new monument search endpoint `/api
 (ns monumental.handler
   (:require [compojure.core :refer :all]
             [compojure.route :as route]
-            [ring.middleware.defaults :refer [wrap-defaults site-defaults]
-            [monumental.core :refer :all]]))
+            [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
+            [monumental.core :refer :all]))
 
 (def monuments '({:REG "Picardie"}))
 
